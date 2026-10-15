@@ -1,0 +1,52 @@
+[
+  {
+    "specialist_id": "SPEC-01",
+    "name": "Dr. Elena Vance",
+    "role": "Principal RF Communications & Telemetry Engineer",
+    "email": "elena.vance@aurora.research.org",
+    "primary_modules": ["Antenna", "NETWORK_GATEWAY", "COMM_RELAY"],
+    "secondary_skills": ["Phased Array Calibration", "Carrier Waveform Recovery", "Signal Noise Analysis"],
+    "shift": "ALPHA (00:00 - 12:00)",
+    "status": "ON_CALL"
+  },
+  {
+    "specialist_id": "SPEC-02",
+    "name": "Commander Marcus Sterling",
+    "role": "Senior Life Support & Bio-Atmospheric Specialist",
+    "email": "marcus.sterling@aurora.research.org",
+    "primary_modules": ["Life-Support", "ENVIRONMENTAL_CONTROL", "HVAC_CHAMBER"],
+    "secondary_skills": ["O2 Electrolyzer Tuning", "Scrubber Desorption", "Atmospheric Pressure Equalization"],
+    "shift": "BRAVO (12:00 - 24:00)",
+    "status": "ON_CALL"
+  },
+  {
+    "specialist_id": "SPEC-03",
+    "name": "Ing. Sophia Chen",
+    "role": "Chief Distributed Bus & IPC Architect",
+    "email": "sophia.chen@aurora.research.org",
+    "primary_modules": ["Notice-Bus", "DB_CLUSTER", "AUTH_SERVICE", "PAYMENT_PIPELINE"],
+    "secondary_skills": ["Lockless Ring Buffers", "CAN-Bus Arbitration", "Zero-Copy RPC Deserialization"],
+    "shift": "ALPHA (00:00 - 12:00)",
+    "status": "ON_CALL"
+  },
+  {
+    "specialist_id": "SPEC-04",
+    "name": "Tarek Al-Mansoor",
+    "role": "Lead High-Voltage & Reactor Grid Power Engineer",
+    "email": "tarek.almansoor@aurora.research.org",
+    "primary_modules": ["Lab-Power", "POWER_DISTRIBUTION", "ENERGY_STORAGE"],
+    "secondary_skills": ["Plasma Inverter Harmonization", "Thyristor Snubber Circuitry", "Phase Load Balancing"],
+    "shift": "BRAVO (12:00 - 24:00)",
+    "status": "ON_CALL"
+  },
+  {
+    "specialist_id": "SPEC-05",
+    "name": "Alex Mercer",
+    "role": "Emergency Incident Commander & Systems Generalist",
+    "email": "alex.mercer@aurora.research.org",
+    "primary_modules": ["SYSTEM", "CORE", "GENERAL"],
+    "secondary_skills": ["Full-Stack Triage", "Hardware Failover", "Cold Restart Sequencing"],
+    "shift": "ROTATING (24/7 ESCALATION)",
+    "status": "STANDBY"
+  }
+]

@@ -1,0 +1,6 @@
+crew_id,crew_name,assigned_domain,shift_start,shift_end,status,max_concurrent_jobs
+CREW-ALPHA,Avionics & RF Flight Line,Antenna;NETWORK_GATEWAY,00:00:00,12:00:00,ACTIVE,1
+CREW-BETA,Life Support & Habitat Maintenance,Life-Support;ENVIRONMENTAL_CONTROL,12:00:00,24:00:00,ACTIVE,1
+CREW-GAMMA,High Voltage & Reactor Electrical,Lab-Power;POWER_DISTRIBUTION,00:00:00,12:00:00,ACTIVE,1
+CREW-DELTA,Kernel Bus & Computing Fabric,Notice-Bus;DB_CLUSTER;AUTH_SERVICE;PAYMENT_PIPELINE,12:00:00,24:00:00,ACTIVE,1
+CREW-OMEGA,Rapid Deployment Incident Squad,ALL_MODULES,00:00:00,24:00:00,STANDBY,1

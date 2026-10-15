@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rogue Protocol — Autonomous Telemetry Incident Commander</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="theme-cream">
+  <!-- Subtle Ambient Background Grid -->
+  <div class="cyber-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <!-- Main Application Container -->
+  <div class="app-layout">
+    
+    <!-- TOP NAVIGATION BAR -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <div class="hud-logo">
+          <span class="logo-pulse"></span>
+          <span class="logo-text">ROGUE PROTOCOL</span>
+        </div>
+        <div class="brand-divider"></div>
+        <div class="mission-tag">
+          <span class="vessel">RESEARCH VESSEL AURORA</span>
+          <span class="sub-tag">AUTONOMY RECALIBRATION ENGINE · ROUND 2</span>
+        </div>
+      </div>
+
+      <div class="nav-center-clock">
+        <div class="ship-time-badge">
+          <span class="clock-label">SHIP TIME (NINE CORE)</span>
+          <span class="clock-val" id="shipClock">2187-04-15 03:12:00</span>
+        </div>
+      </div>
+
+        <!-- Export & Download Center -->
+        <div class="dropdown-wrapper" id="exportDropdownWrap">
+          <button class="btn btn-secondary dropdown-toggle" id="btnExportMenu">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>📥 Export Center</span>
+            <span class="dropdown-arrow">▾</span>
+          </button>
+          <div class="dropdown-menu glass-panel" id="exportMenu">
+            <a href="/api/export/schedule" class="dropdown-item" download="schedule.csv">
+              <span class="item-icon">📄</span>
+              <div class="item-text">
+                <strong>Repair Schedule</strong>
+                <small>schedule.csv (668 work orders)</small>
+              </div>
+            </a>
+            <a href="/api/export/runbooks" class="dropdown-item" download="aurora_remediation_runbooks.zip">
+              <span class="item-icon">📦</span>
+              <div class="item-text">
+                <strong>Remediation Runbooks</strong>
+                <small>aurora_runbooks.zip (668 scripts)</small>
+              </div>
+            </a>
+            <a href="/api/export/dispatches" class="dropdown-item" download="aurora_dispatches_audit.json">
+              <span class="item-icon">📋</span>
+              <div class="item-text">
+                <strong>Dispatches Audit Ledger</strong>
+                <small>aurora_dispatches.json (Receipts & logs)</small>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary theme-toggle-btn" id="btnThemeToggle">
+          <span id="themeToggleIcon">🌙</span>
+          <span id="themeToggleText">Cyber Dark</span>
+        </button>
+
+        <div class="status-indicator live" id="llmStatusBadge">
+          <span class="pulse-dot"></span>
+          <span class="status-label">GEMINI 3.8 FLASH: ACTIVE</span>
+        </div>
+
+        <button class="btn btn-primary" id="btnRunPipeline">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Run Autonomy Engine
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI STATS STRIP -->
+    <section class="kpi-strip">
+      <div class="kpi-card glass-panel" id="kpiScanned">
+        <div class="kpi-header">
+          <span class="kpi-title">TOTAL LOGS SCANNED</span>
+          <span class="kpi-chip">STREAM</span>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value" id="valTotalLogs">3,000</span>
+          <span class="kpi-sub">Round 1 Model Ingestion</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel alert-critical" id="kpiFaults">
+        <div class="kpi-header">
+          <span class="kpi-title">CONFIRMED FAULTS</span>
+          <span class="kpi-chip red">VERDICT = 1</span>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value" id="valFaults">668</span>
+          <span class="kpi-sub"><span id="valFaultPct">22.3%</span> True Failures</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="kpiNoise">
+        <div class="kpi-header">
+          <span class="kpi-title">NOISE SUPPRESSED</span>
+          <span class="kpi-chip green">FILTERED</span>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value" id="valNoise">2,332</span>
+          <span class="kpi-sub">77.7% False Alarms Ignored</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="kpiScheduled">
+        <div class="kpi-header">
+          <span class="kpi-title">WORK ORDERS APPOINTED</span>
+          <span class="kpi-chip cyan">SCHEDULE.CSV</span>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value" id="valOrders">668</span>
+          <span class="kpi-sub">0 Timeline Overlaps</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="kpiCascades">
+        <div class="kpi-header">
+          <span class="kpi-title">TOPOLOGY CORRELATIONS</span>
+          <span class="kpi-chip purple">FLAPPING</span>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value" id="valCascades">588</span>
+          <span class="kpi-sub">Cross-Module Clusters</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN WORKSPACE SECTION -->
+    <main class="main-content">
+      
+      <!-- NAVIGATION TABS -->
+      <nav class="view-tabs">
+        <button class="tab-btn active" data-tab="tab-incidents">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          Fault Ledger & Triage
+        </button>
+        <button class="tab-btn" data-tab="tab-emails">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          Specialist Email Dispatches
+        </button>
+        <button class="tab-btn" data-tab="tab-schedule">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Crew Gantt Schedule
+        </button>
+        <button class="tab-btn" data-tab="tab-vector">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+          Vector RAG Memory
+        </button>
+        <button class="tab-btn" data-tab="tab-gemini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          Live Gemini Neural Lab
+        </button>
+      </nav>
+
+      <!-- TAB 1: INCIDENT LEDGER -->
+      <section class="tab-panel active" id="tab-incidents">
+        
+        <!-- Controls & Filters Bar -->
+        <div class="filters-bar glass-panel">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="filterSearch" placeholder="Search Log ID, Node, Root Cause, or Message...">
+          </div>
+
+          <div class="filter-group">
+            <label for="filterModule">Module:</label>
+            <select id="filterModule" class="select-cyber">
+              <option value="">All Subsystems (4)</option>
+              <option value="Antenna">Antenna</option>
+              <option value="Notice-Bus">Notice-Bus</option>
+              <option value="Lab-Power">Lab-Power</option>
+              <option value="Life-Support">Life-Support</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filterSeverity">Severity:</label>
+            <select id="filterSeverity" class="select-cyber">
+              <option value="">All Severities</option>
+              <option value="CRITICAL">Critical (SEV-1)</option>
+              <option value="HIGH">High (SEV-2)</option>
+              <option value="MODERATE">Moderate (SEV-3)</option>
+            </select>
+          </div>
+
+          <div class="filter-info">
+            <span id="filteredCountBadge">Showing 25 of 668 faults</span>
+          </div>
+        </div>
+
+        <!-- Incidents Table -->
+        <div class="table-container glass-panel">
+          <table class="cyber-table" id="incidentsTable">
+            <thead>
+              <tr>
+                <th>LOG ID</th>
+                <th>TIMESTAMP</th>
+                <th>MODULE</th>
+                <th>NODE</th>
+                <th>SEVERITY</th>
+                <th>TELEMETRY READING</th>
+                <th>DELAY</th>
+                <th>ASSIGNED CREW</th>
+                <th>SPECIALIST ON CALL</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="incidentsTbody">
+              <tr>
+                <td colspan="10" class="loading-cell">
+                  <div class="cyber-spinner"></div>
+                  <span>Loading telemetry fault stream...</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="pagination-bar">
+          <button class="btn btn-secondary" id="btnPrevPage" disabled>← Previous Page</button>
+          <span class="page-indicator" id="pageIndicator">Page 1 of 27</span>
+          <button class="btn btn-secondary" id="btnNextPage">Next Page →</button>
+        </div>
+      </section>
+
+      <!-- TAB 2: SPECIALIST EMAIL DISPATCHES & MESSAGE AUTOMATION -->
+      <section class="tab-panel" id="tab-emails">
+        
+        <!-- Channel Mode Switcher Bar -->
+        <div class="channel-view-selector glass-panel">
+          <div class="subtab-group">
+            <button class="subtab-btn active" data-channel="email-view" id="btnSubtabEmail">
+              <span class="subtab-icon">✉️</span> Specialist Email Inbox (<code class="accent-code">dispatches/</code>)
+            </button>
+            <button class="subtab-btn" data-channel="chat-view" id="btnSubtabChat">
+              <span class="subtab-icon">💬</span> Ops Chat Stream (Slack Simulator)
+              <span class="pulse-chip">LIVE FEED</span>
+            </button>
+          </div>
+          <div class="inbox-actions">
+            <button class="btn btn-accent btn-sm" id="btnLiveAutoDispatchStream">
+              <span class="pulse-chip" style="background:rgba(255,255,255,0.25); color:#fff; border-color:#fff;">LIVE</span>
+              ⚡ Automated Dispatch Stream
+            </button>
+            <a href="/api/export/dispatches" class="btn btn-secondary btn-sm" download="aurora_dispatches_audit.json">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export JSON
+            </a>
+            <button class="btn btn-primary btn-sm" id="btnSendTestDispatch">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              Send Live Test Dispatch
+            </button>
+          </div>
+        </div>
+
+        <!-- LIVE EMAIL AUTOMATION ENGINE TERMINAL -->
+        <div class="live-dispatch-automation-card glass-panel" id="liveDispatchCard" style="display: none;">
+          <div class="lda-header">
+            <div class="lda-title">
+              <span class="pulse-dot"></span>
+              <strong>Live Specialist Dispatch & SMTP Transmission Automation</strong>
+              <span class="lda-chip" id="ldaStatusChip">IDLE</span>
+            </div>
+            <div class="lda-actions">
+              <button class="btn btn-xs btn-primary" id="btnRunNextAutoDispatch">▶ Dispatch Next Incident</button>
+              <button class="btn btn-xs btn-secondary" id="btnCloseLdaCard">✖ Close</button>
+            </div>
+          </div>
+          
+          <div class="lda-pipeline-steps">
+            <div class="lda-step" id="stepIngest">
+              <span class="step-num">1</span>
+              <div class="step-info">
+                <strong>Ingest & Score</strong>
+                <span id="stepIngestText">Telemetry Deviation</span>
+              </div>
+            </div>
+            <div class="lda-arrow">➔</div>
+            <div class="lda-step" id="stepMatch">
+              <span class="step-num">2</span>
+              <div class="step-info">
+                <strong>Match Specialist</strong>
+                <span id="stepMatchText">Semantic Roster</span>
+              </div>
+            </div>
+            <div class="lda-arrow">➔</div>
+            <div class="lda-step" id="stepCrypto">
+              <span class="step-num">3</span>
+              <div class="step-info">
+                <strong>Mint Receipt Token</strong>
+                <span id="stepCryptoText">SHA-256 Token</span>
+              </div>
+            </div>
+            <div class="lda-arrow">➔</div>
+            <div class="lda-step" id="stepSmtp">
+              <span class="step-num">4</span>
+              <div class="step-info">
+                <strong>SMTP Handshake</strong>
+                <span id="stepSmtpText">RFC 822 Delivery</span>
+              </div>
+            </div>
+            <div class="lda-arrow">➔</div>
+            <div class="lda-step" id="stepInbox">
+              <span class="step-num">5</span>
+              <div class="step-info">
+                <strong>Delivered</strong>
+                <span id="stepInboxText">Confirmed in Inbox</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lda-terminal" id="ldaTerminalOutput">
+            <div class="lda-line system">// Ready. Click "▶ Dispatch Next Incident" to watch live end-to-end automation in real-time.</div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW 1: Email Client Dual-Pane View -->
+        <div class="channel-view-container active" id="channelEmailView">
+          <div class="email-client-layout">
+            <!-- Left Pane: Email List -->
+            <div class="email-list-panel glass-panel">
+              <div class="email-list-search">
+                <input type="text" id="emailSearchInput" placeholder="Filter emails by Specialist, Log ID, or Subject...">
+              </div>
+              <div class="email-items-container" id="emailItemsContainer">
+                <div class="loading-cell"><div class="cyber-spinner"></div> Loading dispatched messages...</div>
+              </div>
+              <div class="email-pagination">
+                <button class="btn btn-sm btn-secondary" id="btnEmailPrev">Prev</button>
+                <span id="emailPageText" class="mono text-xs">Page 1</span>
+                <button class="btn btn-sm btn-secondary" id="btnEmailNext">Next</button>
+              </div>
+            </div>
+
+            <!-- Right Pane: Email Message Reader -->
+            <div class="email-reader-panel glass-panel" id="emailReaderPanel">
+              <div class="empty-email-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                <p>Select an operational dispatch from the left panel to inspect the full email alert payload, offending telemetry, and runbook links.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW 2: Team Chat / Slack Simulator Feed -->
+        <div class="channel-view-container" id="channelChatView" style="display: none;">
+          <div class="chat-stream-layout glass-panel">
+            <div class="chat-channel-bar">
+              <div class="channel-info">
+                <span class="channel-hash">#</span>
+                <strong class="channel-name">aurora-incident-bridge</strong>
+                <span class="channel-topic">🚨 Autonomous Telemetry Alert & Specialist Response Stream</span>
+              </div>
+              <div class="channel-meta">
+                <span class="badge-online">🟢 5 Specialists Online</span>
+                <span class="badge-bot">🤖 Aurora Bot Active</span>
+              </div>
+            </div>
+
+            <div class="chat-messages-container" id="chatMessagesContainer">
+              <!-- Rendered via JavaScript -->
+            </div>
+
+            <div class="chat-composer-bar">
+              <div class="composer-input-wrap">
+                <span class="composer-icon">💬</span>
+                <input type="text" id="chatBroadcastInput" placeholder="Broadcast operational message to #aurora-incident-bridge (e.g. 'Paging Dr. Elena Vance to review Antenna L07004')...">
+              </div>
+              <button class="btn btn-accent btn-sm" id="btnChatBroadcast">Broadcast 🚀</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 3: SCHEDULE GANTT TIMELINE -->
+      <section class="tab-panel" id="tab-schedule">
+        <div class="schedule-intro glass-panel">
+          <div class="intro-text">
+            <h3>Automated Repair Crew Dispatch Ledger (<code class="accent-code">schedule.csv</code>)</h3>
+            <p>Non-overlapping chronological work orders computed dynamically based on incident severity (120m for Critical, 60m for High, 30m for Moderate) with turnaround buffers.</p>
+          </div>
+          <div class="crew-legend">
+            <span class="legend-chip crew-alpha"><span class="chip-dot"></span> CREW-ALPHA (Antenna)</span>
+            <span class="legend-chip crew-beta"><span class="chip-dot"></span> CREW-BETA (Life-Support)</span>
+            <span class="legend-chip crew-gamma"><span class="chip-dot"></span> CREW-GAMMA (Lab-Power)</span>
+            <span class="legend-chip crew-delta"><span class="chip-dot"></span> CREW-DELTA (Notice-Bus)</span>
+            <span class="legend-chip crew-omega"><span class="chip-dot"></span> CREW-OMEGA (Standby)</span>
+          </div>
+        </div>
+
+        <!-- VISUAL HORIZONTAL GANTT TIMELINE -->
+        <div class="gantt-visual-card glass-panel">
+          <div class="gantt-header-row">
+            <div>
+              <h4>Visual Crew Dispatch Gantt Timeline</h4>
+              <p class="text-sm text-muted">Chronological repair shifts mapped across 5 engineering crews — verified 0 timeline collisions.</p>
+            </div>
+            <div class="gantt-controls">
+              <div class="filter-group">
+                <label for="ganttCrewFilter">Crew:</label>
+                <select id="ganttCrewFilter" class="select-cyber">
+                  <option value="ALL">All Crews (5)</option>
+                  <option value="CREW-ALPHA">CREW-ALPHA (Antenna)</option>
+                  <option value="CREW-BETA">CREW-BETA (Life-Support)</option>
+                  <option value="CREW-GAMMA">CREW-GAMMA (Lab-Power)</option>
+                  <option value="CREW-DELTA">CREW-DELTA (Notice-Bus)</option>
+                  <option value="CREW-OMEGA">CREW-OMEGA (Standby)</option>
+                </select>
+              </div>
+              <a href="/api/export/schedule" class="btn btn-secondary btn-sm" download="schedule.csv">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export CSV
+              </a>
+            </div>
+          </div>
+
+          <div class="gantt-board-wrapper">
+            <div class="gantt-time-header">
+              <div class="gantt-col-label">CREW TRACK</div>
+              <div class="gantt-axis-ticks">
+                <span>03:00</span>
+                <span>04:00</span>
+                <span>05:00</span>
+                <span>06:00</span>
+                <span>07:00</span>
+                <span>08:00</span>
+                <span>09:00</span>
+                <span>10:00</span>
+                <span>11:00</span>
+                <span>12:00+</span>
+              </div>
+            </div>
+            <div class="gantt-tracks-container" id="ganttTracksContainer">
+              <div class="loading-cell"><div class="cyber-spinner"></div> Loading visual Gantt tracks...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="schedule-table-wrap glass-panel">
+          <table class="cyber-table" id="scheduleTable">
+            <thead>
+              <tr>
+                <th>LOG ID</th>
+                <th>CREW ID</th>
+                <th>SLOT START</th>
+                <th>SLOT END</th>
+                <th>JOB DESCRIPTION & DIRECTIVE</th>
+                <th>DURATION</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleTbody">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 4: VECTOR RAG MEMORY -->
+      <section class="tab-panel" id="tab-vector">
+        <div class="vector-search-header glass-panel">
+          <div class="vector-query-box">
+            <input type="text" id="vectorSearchInput" placeholder="Enter natural language query or telemetry symptom (e.g. 'phase lock lost in antenna', 'harmonic oscillation in inverter')...">
+            <button class="btn btn-accent" id="btnVectorSearch">Query Vector Memory (k=5)</button>
+          </div>
+          <div class="vector-meta-chips">
+            <span class="vchip">Storage: Persistent ChromaDB / Dense TF-IDF</span>
+            <span class="vchip">Metric: Cosine Similarity</span>
+            <span class="vchip">Total Indexed: 668 Incidents</span>
+          </div>
+        </div>
+
+        <div class="vector-results-container" id="vectorResultsContainer">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <p>Query historical memory to inspect RAG precedents and recurring telemetry regressions across ship subsystems.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: LIVE GEMINI NEURAL LAB -->
+      <section class="tab-panel" id="tab-gemini">
+        <div class="neural-lab-container">
+          
+          <div class="neural-input-card glass-panel">
+            <div class="card-head">
+              <h3>Live Neural Telemetry Diagnostic</h3>
+              <span class="chip-cyan">Google Gemini 3.8 Flash</span>
+            </div>
+            <p class="card-desc">Simulate a live incident or test cryptic messages from ship computer NINE. The neural model deduces the probable hardware failure and synthesizes targeted Linux CLI commands.</p>
+
+            <form id="geminiLabForm">
+              <div class="form-group">
+                <label>Subsystem Module:</label>
+                <select id="geminiModule" class="select-cyber">
+                  <option value="Notice-Bus">Notice-Bus (IPC / Distributed CAN)</option>
+                  <option value="Antenna">Antenna (Phased Array / RF Demodulator)</option>
+                  <option value="Lab-Power">Lab-Power (Thyristor / Reactor Grid)</option>
+                  <option value="Life-Support">Life-Support (Catalytic CO2 Scrubbers / O2)</option>
+                  <option value="DB_CLUSTER">DB_CLUSTER (Enterprise Sharded Cluster)</option>
+                  <option value="NETWORK_GATEWAY">NETWORK_GATEWAY (Ingress / BGP Mesh)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Observed Symptom / Root Cause:</label>
+                <input type="text" id="geminiRootCause" class="input-cyber" value="bus arbitration deadlock between node N1 and N8">
+              </div>
+
+              <div class="form-group">
+                <label>Raw Telemetry Log Message:</label>
+                <textarea id="geminiMessage" class="textarea-cyber" rows="3">NINE: bus arbitration deadlock [Notice-Bus 309.43 msg/s]</textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="btnRunGeminiTriage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                Invoke Gemini 3.8 Flash Triage
+              </button>
+            </form>
+          </div>
+
+          <div class="neural-output-card glass-panel">
+            <div class="card-head">
+              <h3>Remediation Terminal Stream</h3>
+              <span class="terminal-badge" id="terminalStatus">READY</span>
+            </div>
+            <div class="cyber-terminal" id="geminiTerminalOutput">
+              <div class="terminal-line system">// Gemini 3.8 Flash Neural Diagnostic Interface Loaded</div>
+              <div class="terminal-line system">// Awaiting incident telemetry parameter submission...</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- DEEP-DIVE MODAL -->
+  <div class="modal-overlay" id="incidentModal">
+    <div class="modal-box glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge-sev" id="mBadgeSev">CRITICAL</span>
+          <h2 id="mLogId">Incident L07004</h2>
+          <span class="m-timestamp" id="mTimestamp">2187-03-06 03:15:40</span>
+        </div>
+        <button class="modal-close" id="btnModalClose">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- TOP GRID -->
+        <div class="modal-metrics-grid">
+          <div class="metric-block">
+            <span class="lbl">SUBSYSTEM MODULE</span>
+            <span class="val" id="mModule">Antenna</span>
+          </div>
+          <div class="metric-block">
+            <span class="lbl">TARGET NODE</span>
+            <span class="val" id="mNode">N9</span>
+          </div>
+          <div class="metric-block">
+            <span class="lbl">SENSOR READING</span>
+            <span class="val" id="mReading">47.37 dBm</span>
+          </div>
+          <div class="metric-block">
+            <span class="lbl">TELEMETRY DELAY</span>
+            <span class="val" id="mDelay">979.0 ms</span>
+          </div>
+          <div class="metric-block">
+            <span class="lbl">RETRY COUNT</span>
+            <span class="val" id="mRetries">2</span>
+          </div>
+          <div class="metric-block">
+            <span class="lbl">SEVERITY SCORE</span>
+            <span class="val" id="mSevScore">50.0 / 100</span>
+          </div>
+        </div>
+
+        <!-- ROOT CAUSE & MESSAGE -->
+        <div class="modal-card">
+          <h4>Probable Root Cause & Deceptive Log Analysis</h4>
+          <p class="root-cause-text" id="mRootCause">Antenna carrier frequency drift & oscillator misalignment</p>
+          <div class="raw-msg-box">
+            <span class="msg-lbl">NINE Log Message:</span>
+            <span class="msg-txt" id="mRawMessage">"NINE: nothing to see. carrier drift beyond tolerance [Notice-Bus 47.37 dBm]"</span>
+          </div>
+        </div>
+
+        <!-- SPECIALIST DISPATCH & WORK ORDER SPLIT -->
+        <div class="modal-row-split">
+          <div class="modal-card">
+            <h4>Specialist Dispatch Alert</h4>
+            <div class="kv-row"><span>Engineer:</span><strong id="mSpecialistName">Dr. Elena Vance</strong></div>
+            <div class="kv-row"><span>Email:</span><code id="mSpecialistEmail">elena.vance@aurora.research.org</code></div>
+            <div class="kv-row"><span>Crypto Receipt:</span><code class="token-code" id="mReceiptToken">RCPT-20261015-L07004-EAFCAEBB</code></div>
+            <button class="btn btn-sm btn-secondary mt-2" id="btnViewDispatchEml">View RFC 822 Alert Email</button>
+          </div>
+
+          <div class="modal-card">
+            <h4>Assigned Work Order</h4>
+            <div class="kv-row"><span>Repair Crew:</span><strong id="mCrewId">CREW-ALPHA</strong></div>
+            <div class="kv-row"><span>Window:</span><span id="mCrewWindow">2187-03-06 03:15:40 ➔ 04:15:40</span></div>
+            <div class="kv-row"><span>Job Directive:</span><span id="mCrewJob">Realign phased-array RF feedhorn and calibrate PLL tracking loop</span></div>
+          </div>
+        </div>
+
+        <!-- EXECUTABLE RUNBOOK PREVIEW & INTERACTIVE SIMULATOR -->
+        <div class="modal-card">
+          <div class="card-head-bar">
+            <h4>Autonomous Remediation Runbook (<code id="mRunbookFilename">remediate_L07004.sh</code>)</h4>
+            <div class="modal-btn-group">
+              <button class="btn btn-sm btn-primary" id="btnSimulateRunbook">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                ▶ Run Remediation Simulator
+              </button>
+              <button class="btn btn-sm btn-accent" id="btnCopyRunbook">Copy Script</button>
+            </div>
+          </div>
+          <pre class="code-preview" id="mRunbookCode">#!/usr/bin/env bash
+# Loading runbook code...</pre>
+
+          <!-- Interactive Live Runbook Simulator Terminal Drawer -->
+          <div class="runbook-sim-panel" id="runbookSimPanel" style="display: none;">
+            <div class="sim-header">
+              <div class="sim-title-group">
+                <span class="sim-dot"></span>
+                <strong>Autonomous Self-Healing CLI Execution Simulator</strong>
+                <span class="sim-badge" id="simBadge">INITIALIZING</span>
+              </div>
+              <div class="sim-actions">
+                <button class="btn btn-xs btn-secondary" id="btnSimReset">🔄 Reset</button>
+                <button class="btn btn-xs btn-primary" id="btnSimRerun">▶ Re-run</button>
+              </div>
+            </div>
+
+            <div class="sim-progress-track">
+              <div class="sim-progress-bar" id="simProgressBar"></div>
+            </div>
+
+            <div class="sim-terminal-screen" id="simTerminalLog">
+              <div class="sim-line system">// Connecting to node socket via SSH proxy...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
